@@ -12,7 +12,9 @@ public class Game : MonoBehaviour
     void Start()
     {
         hair.parent = girlHead;
-        print("hair parent " + hair.parent);
+        //print("hair parent " + hair.parent);
+        hair.transform.localPosition = Vector3.zero;
+        hair.transform.localRotation = Quaternion.identity;
     }
 
     // Update is called once per frame
