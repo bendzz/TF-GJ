@@ -49,7 +49,7 @@ ModelImporter:
     animationRetargetingWarnings: 
     animationDoRetargetingWarnings: 0
     importAnimatedCustomProperties: 0
-    importConstraints: 0
+    importConstraints: 1
     animationCompression: 0
     animationRotationError: 0.5
     animationPositionError: 0.5
@@ -237,7 +237,7 @@ ModelImporter:
       takeName: ArmatureBody|PoleDance1
       internalID: 0
       firstFrame: 0
-      lastFrame: 111
+      lastFrame: 144
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
