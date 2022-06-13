@@ -10,26 +10,54 @@ public class Game : MonoBehaviour
 
     public float TF;
 
+    public Pump pump;
+
+    float triggerPress;
+    bool expectingKeyboard = false;
+    [Tooltip("How much the trigger press increases/decreases in 1 second, when using keyboard input")]
+    public float keyPressPower = 3f;
+
     // Start is called before the first frame update
     void Start()
     {
+        pump = new Pump();
 
-    }
+        triggerPress = 0;
+    } 
 
     private void Update()
     {
         OVRInput.Update();
 
-        TF -= OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) * .1f;     // grip
-        TF += OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger) * .1f;    // trigger
+
+        if (OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger) > 0)
+            expectingKeyboard = false;
+        if (!expectingKeyboard)
+        {
+            triggerPress = OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger);
+        }
 
         if (Input.GetKey(KeyCode.W))
-            TF += .05f;
-        if (Input.GetKey(KeyCode.E))
-            TF -= .05f;
+        {
+            expectingKeyboard = true;
+            triggerPress += keyPressPower * Time.deltaTime;
+        } else
+        {
+            if (expectingKeyboard)
+            {
+                triggerPress -= keyPressPower * Time.deltaTime;
+            }
+        }
+        triggerPress = Mathf.Clamp01(triggerPress);
 
-        TF = Mathf.Clamp(TF, 0, 2);
+        //print("triggerpress " + triggerPress);
+
+        TF = pump.getTFDisplay(triggerPress);
+        //print("TF " + TF);
+
+        TF = Mathf.Clamp(TF, 0, 1.5f);
     }
+
 
     //void Update()
     private void LateUpdate()
@@ -37,5 +65,64 @@ public class Game : MonoBehaviour
         tailBase.localScale = new Vector3(TF, TF, TF);
         EarBaseL.localScale = new Vector3(TF, TF, TF);
         EarBaseR.localScale = new Vector3(TF, TF, TF);
+    }
+}
+
+/// <summary>
+/// Lets you pump the girl up to TF her, with your trigger
+/// </summary>
+public class Pump
+{
+    /// <summary>
+    /// How TF'd she appears
+    /// </summary>
+    float TFDisplay = 0;
+    
+
+    float girlFill = 0;
+    /// <summary>
+    /// How much air the pump has pushed into the girl, temporarily. (Much will 'leak back out' when the pump is released)
+    /// </summary>
+    float pumpFill = 0;
+
+
+    float oldPumpDepressed = 0;
+
+    /// <summary>
+    /// How much a full pump would inflate her
+    /// </summary>
+    public float pumpVolume = .2f;
+
+    /// <summary>
+    /// How much of each pump actually stays in her when released
+    /// </summary>
+    public float pumpRetained = .4f;
+
+
+    public Pump()
+    {
+    }
+
+    /// <summary>
+    /// How TF'd to display her
+    /// </summary>
+    /// <param name="pumpDepressed">Where the pump handle is; 1 is pump is fulled depressed, 0 is the handle's pulled out ready to pump. (Basically, the controller trigger value) </param>
+    /// <returns></returns>
+    public float getTFDisplay(float pumpDepressed)
+    {
+        float pumpChange = pumpDepressed - oldPumpDepressed;
+        if (pumpChange > 0)
+        {
+            pumpFill += pumpChange;
+        } else if (pumpChange < 0)
+        {
+            girlFill += -pumpChange * pumpRetained * pumpVolume;
+            pumpFill -= -pumpChange;
+        }
+
+        TFDisplay = girlFill + pumpFill * pumpVolume;
+
+        oldPumpDepressed = pumpDepressed;
+        return TFDisplay;
     }
 }
