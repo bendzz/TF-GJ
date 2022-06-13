@@ -16,6 +16,9 @@ public class Game : MonoBehaviour
     bool expectingKeyboard = false;
     [Tooltip("How much the trigger press increases/decreases in 1 second, when using keyboard input")]
     public float keyPressPower = 3f;
+    public float earsTailMaxSize = 1.5f;
+    public float undoTFRate = .3f;
+
 
     // Start is called before the first frame update
     void Start()
@@ -30,27 +33,37 @@ public class Game : MonoBehaviour
         OVRInput.Update();
 
 
-        if (OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger) > 0)
-            expectingKeyboard = false;
-        if (!expectingKeyboard)
+        // pump her up
         {
-            triggerPress = OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger);
-        }
-
-        if (Input.GetKey(KeyCode.W))
-        {
-            expectingKeyboard = true;
-            triggerPress += keyPressPower * Time.deltaTime;
-        } else
-        {
-            if (expectingKeyboard)
+            if (OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger) > 0)
+                expectingKeyboard = false;
+            if (!expectingKeyboard)
             {
-                triggerPress -= keyPressPower * Time.deltaTime;
+                triggerPress = OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger);
             }
-        }
-        triggerPress = Mathf.Clamp01(triggerPress);
 
-        //print("triggerpress " + triggerPress);
+            if (Input.GetKey(KeyCode.W))
+            {
+                expectingKeyboard = true;
+                triggerPress += keyPressPower * Time.deltaTime;
+            }
+            else
+            {
+                if (expectingKeyboard)
+                {
+                    triggerPress -= keyPressPower * Time.deltaTime;
+                }
+            }
+            triggerPress = Mathf.Clamp01(triggerPress);
+            //print("triggerpress " + triggerPress);
+        }
+        // undo the TF
+        {
+            if (OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger) > 0)
+                pump.girlFill -= undoTFRate * Time.deltaTime * OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger);
+            if (Input.GetKey(KeyCode.E))
+                pump.girlFill -= undoTFRate * Time.deltaTime;
+        }
 
         TF = pump.getTFDisplay(triggerPress);
         //print("TF " + TF);
@@ -62,12 +75,13 @@ public class Game : MonoBehaviour
     //void Update()
     private void LateUpdate()
     {
-        tailBase.localScale = new Vector3(TF, TF, TF);
-        EarBaseL.localScale = new Vector3(TF, TF, TF);
-        EarBaseR.localScale = new Vector3(TF, TF, TF);
+        Vector3 earsTail = Vector3.one * Mathf.Clamp(TF, 0, earsTailMaxSize);
+        tailBase.localScale = earsTail;
+        EarBaseL.localScale = earsTail;
+        EarBaseR.localScale = earsTail;
     }
 }
-
+ 
 /// <summary>
 /// Lets you pump the girl up to TF her, with your trigger
 /// </summary>
@@ -79,7 +93,10 @@ public class Pump
     float TFDisplay = 0;
     
 
-    float girlFill = 0;
+    /// <summary>
+    /// How TF'd she actually is (minus temporary air)
+    /// </summary>
+    public float girlFill = 0;
     /// <summary>
     /// How much air the pump has pushed into the girl, temporarily. (Much will 'leak back out' when the pump is released)
     /// </summary>
