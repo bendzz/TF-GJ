@@ -19,6 +19,8 @@ public class Game : MonoBehaviour
     public float earsTailMaxSize = 1.5f;
     public float undoTFRate = .3f;
 
+    //startle   // from her tail being touched too fast
+
 
     // Start is called before the first frame update
     void Start()
@@ -63,6 +65,8 @@ public class Game : MonoBehaviour
                 pump.girlFill -= undoTFRate * Time.deltaTime * OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger);
             if (Input.GetKey(KeyCode.E))
                 pump.girlFill -= undoTFRate * Time.deltaTime;
+            if (pump.girlFill < 0)
+                pump.girlFill = 0;
         }
 
         TF = pump.getTFDisplay(triggerPress);
