@@ -21,10 +21,16 @@ public class Game : MonoBehaviour
     [Tooltip("Undoing the TF is more of a debug/for fun thing...")]
     public float undoTFRate = .5f;
 
-    [Tooltip("How sensitive the girl is to you screwing up and moving too fast.")]
-    public float girlSensitivityVR = .5f;
-    public float girlSensitivityKeyboard = .5f;
+    [Tooltip("How sensitive the girl is to you screwing up and moving too fast; it'll take (1/X) seconds to fully startle her.")]
+    public float girlSensitivityVR = 3f;
+    public float girlSensitivityKeyboard = 3f;
 
+    [Tooltip("How many degrees per second the joystick has to aim for to arouse but not discomfort her.")]
+    public float joystickSwirlSpeed = 360;
+    [Tooltip("How many seconds of perfect twirling to get her fully worked up")]
+    public float hornyWorkUpTime = 5;
+    [Tooltip("It'll take her (1/X) seconds to fully startle if you're joysticking her too hard.")]
+    public float joydickSensitivity = 1;
 
     [Tooltip("Control her emotional state directly with the joystick. For debugging, but also hot.")]
     public bool cheatEmotionsJoystick = false;
@@ -35,7 +41,12 @@ public class Game : MonoBehaviour
     /// <summary>
     /// For interpolating a virtual trigger press for keyboard users, and tracking speed for VR users and keyboard users
     /// </summary>
-    public float triggerPress;
+    float triggerPress;
+    /// <summary>
+    /// Holds past joystick values up to "joystickOld1Period" seconds old, to determine how fast the joystick is moving 
+    /// </summary>
+    Queue<Vector3> joystickOld1;
+    const float joystickOld1Period = .5f;
 
     // Start is called before the first frame update
     void Start()
@@ -49,6 +60,11 @@ public class Game : MonoBehaviour
         girl = new Girl(girlModel);
 
         triggerPress = 0;
+        joystickOld1 = new Queue<Vector3>();
+        for (int i = 0; i < 10; i++)
+        {
+            joystickOld1.Enqueue(new Vector3(0,0,Time.time));  // does throwing away Vector3s cause garbage collection?
+        }
     } 
 
     /// <summary>
@@ -71,6 +87,20 @@ public class Game : MonoBehaviour
     {
         OVRInput.Update();
 
+        // update joystick
+        Vector2 joystick = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick);
+        {
+            //joystickOld1
+            Vector3 oldJoystick1;
+            do
+            {
+                oldJoystick1 = joystickOld1.Peek();
+                if (Time.time - oldJoystick1.z <= joystickOld1Period)
+                    break;
+                joystickOld1.Dequeue();
+            } while (joystickOld1.Count > 0);
+        }
+
         // pump her up
         float trigger = 0;
         {
@@ -80,11 +110,12 @@ public class Game : MonoBehaviour
             {
                 trigger = OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger);
                 //triggerPress = OVRInput.Get(OVRInput.Axis1D.PrimaryIndexTrigger);
+                float smoothDelta = triggerPressPower * Time.deltaTime;
                 if (triggerPress < trigger)
-                    triggerPress += triggerPressPower * Time.deltaTime; // TODO Test
+                    triggerPress += smoothDelta; // TODO Test
                 else
-                    triggerPress -= triggerPressPower * Time.deltaTime;
-                if (Mathf.Abs(triggerPress - trigger) < triggerPressPower * Time.deltaTime)
+                    triggerPress -= smoothDelta;
+                if (Mathf.Abs(triggerPress - trigger) * .9f < smoothDelta)
                     triggerPress = trigger;
             }
 
@@ -159,14 +190,48 @@ public class Game : MonoBehaviour
 
         girl.TF = Mathf.Clamp(girl.TF, 0, 1.5f);
 
+
+
+        // Joystick arouse and distract her
+        {
+            //joystick = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick);
+            
+            if (joystick.magnitude > .1f)
+            {
+                // Get the joystick rotation distance over "joystickOld1Period" seconds
+                float angleDiff = 0;
+                Vector3 oldold = joystickOld1.Peek();
+                foreach (Vector3 old in joystickOld1)
+                {
+                    Vector3 oldv = new Vector2(old.x, old.y);
+                    angleDiff += Vector2.SignedAngle(oldv, new Vector2(oldold.x, oldold.y)) * oldv.magnitude;
+                    oldold = old;
+                }
+                float angleSpeed = angleDiff / (Time.time - joystickOld1.Peek().z);
+                float rating = Mathf.Abs( angleSpeed / joystickSwirlSpeed);
+
+                float overkill = Mathf.Clamp01(rating - 1);
+
+                float hornyIncrease = (rating - overkill) * (1/hornyWorkUpTime) * Time.deltaTime;
+                girl.horny += hornyIncrease;
+                //girl.concern -= hornyIncrease;
+
+                if (overkill > 0)
+                    girl.startle += overkill * joydickSensitivity * Time.deltaTime;
+
+                //print("angleDiff " + angleDiff + " angleSpeed " + angleSpeed + " rating " + rating + " count " + joystickOld1.Count);
+            }
+        }
+
+
         // emote
         {
             if (cheatEmotionsJoystick)
             {
-                Vector2 stick = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick);
-                girl.horny = Mathf.Clamp01(stick.x);
-                girl.concern = Mathf.Clamp01(stick.y);
-                girl.startle = Mathf.Clamp01(-stick.y);
+                //Vector2 stick = OVRInput.Get(OVRInput.Axis2D.PrimaryThumbstick);
+                girl.horny = Mathf.Clamp01(joystick.x);
+                girl.concern = Mathf.Clamp01(joystick.y);
+                girl.startle = Mathf.Clamp01(-joystick.y);
             }
 
             // check if VR player is too enthusiastic
@@ -184,6 +249,9 @@ public class Game : MonoBehaviour
         }
 
         girl.update();
+
+        //joystickOld = joystick;
+        joystickOld1.Enqueue(new Vector3(joystick.x, joystick.y, Time.time));
     }
 
 
@@ -240,9 +308,36 @@ public class Girl
     /// </summary>
     public void update()
     {
+        // TODO set visual variables that have a max tween speed, ie don't snap to 100% instantly
+
         animator.SetFloat("PD1Startled", startle);
         animator.SetFloat("PD1Horny", horny);
         animator.SetFloat("PD1Concerned", concern);
+
+        float startleDiff = .35f * Time.deltaTime;
+        startle -= startleDiff;
+        horny -= .2f * Time.deltaTime;
+
+        concern += startleDiff - Mathf.Clamp01(-startle);
+
+        concern = Mathf.Min(concern, (1 - (horny - .8f) * 2.6f));   // nearly max horny pushes concern out of her mind
+
+        if (startle < .2f)
+        {
+            if (TF > .1f)
+            {
+                if (concern < .5f)
+                    concern -= .1f * Time.deltaTime;
+                else
+                    concern += .1f * Time.deltaTime;
+            }
+            else
+                concern -= .1f * Time.deltaTime;
+        }
+
+        startle = Mathf.Clamp01(startle);
+        horny = Mathf.Clamp01(horny);
+        concern = Mathf.Clamp01(concern);
     }
 }
 
