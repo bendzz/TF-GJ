@@ -2095,14 +2095,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   girlModel: {fileID: 1470694723}
-  keyPressPower: 2
-  triggerPressPower: 2
+  keyPressPower: 3
+  triggerPressPower: 3
   earsTailMaxSize: 1.5
   undoTFRate: 0.6
-  girlSensitivityVR: 0.5
-  girlSensitivityKeyboard: 0.3
+  girlSensitivityVR: 3
+  girlSensitivityKeyboard: 3
+  joystickSwirlSpeed: 360
+  hornyWorkUpTime: 2
+  joydickSensitivity: 1
   cheatEmotionsJoystick: 0
-  triggerPress: 0
 --- !u!4 &2089111703
 Transform:
   m_ObjectHideFlags: 0
