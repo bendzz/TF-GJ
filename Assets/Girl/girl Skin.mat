@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: girl Skin
-  m_Shader: {fileID: 45, guid: 0000000000000000f000000000000000, type: 0}
+  m_Shader: {fileID: 4800000, guid: d9474f32bfa447b44a7b9f9315390c16, type: 3}
   m_ShaderKeywords: _EMISSION _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
@@ -40,7 +40,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 74368cc9d00ddb546b49f0514fc91043, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
@@ -66,8 +66,9 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
-    - _Glossiness: 0.625
+    - _Glossiness: 1
     - _GlossyReflections: 1
+    - _MakeupMultiplier: 0.477
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
@@ -79,6 +80,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 0.92666006, g: 0.7165476, b: 0.6449118, a: 1}
+    - _Emission: {r: 0.084905684, g: 0.039420497, b: 0.021226421, a: 1}
     - _EmissionColor: {r: 0.1509434, g: 0.074177176, b: 0.056247775, a: 1}
     - _SpecColor: {r: 0.2264151, g: 0.2264151, b: 0.2264151, a: 1}
   m_BuildTextureStacks: []
