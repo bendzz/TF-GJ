@@ -7,7 +7,7 @@ Shader "Custom/skinTextureShader"
         _Glossiness("Smoothness", Range(0,1)) = 0.5
         _Metallic("Metallic", Range(0,1)) = 0.0
         _Emission("Emission", Color) = (0,0,0,0)
-        _MakeupMultiplier("MakeupMultiplier", Range(0,1)) = 1.0
+        _MakeupMultiplier("_MakeupMultiplier", Range(0,2)) = 1.0
         _TFGradient("_TFGradient", 2D) = "black" {}
         _FurTex("_FurTex", 2D) = "black" {}
         _FurTF("FurTF", Range(-3.5,.5)) = 1.0

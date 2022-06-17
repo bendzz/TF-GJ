@@ -326,6 +326,10 @@ public class Girl
         if (girlMesh.materials[0].name.ToLower() != "girl skin")
             Debug.LogWarning("Warning! Skin material not found, for fur TF!");
         girlMesh.materials[0].SetFloat("_FurTF", furTF);
+
+        float blush = Mathf.Clamp(horny, 0, 2);
+        blush = Mathf.Lerp(0.711f, 1.5f, blush);
+        girlMesh.materials[0].SetFloat("_MakeupMultiplier", blush);
     }
 
     /// <summary>
