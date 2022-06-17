@@ -221,6 +221,12 @@ public class Game : MonoBehaviour
 
                 //print("angleDiff " + angleDiff + " angleSpeed " + angleSpeed + " rating " + rating + " count " + joystickOld1.Count);
             }
+
+            // Lazy shitty keyboard arousal. TODO: Better
+            if (Input.GetKey(KeyCode.D))
+            {
+                girl.horny += .7f * (1 / hornyWorkUpTime) * Time.deltaTime;
+            }
         }
 
 
@@ -278,6 +284,9 @@ public class Girl
     Transform EarBaseL;
     Transform EarBaseR;
 
+    Transform girlBody;
+    SkinnedMeshRenderer girlMesh;
+
     Animator animator;
     RuntimeAnimatorController controller;
 
@@ -290,6 +299,11 @@ public class Girl
         tailBase = Game.findChild(girlModel, "tail1");
         EarBaseL = Game.findChild(girlModel, "ear1.L");
         EarBaseR = Game.findChild(girlModel, "ear1.R");
+        girlBody = Game.findChild(girlModel, "girl");
+
+        girlMesh = girlBody.GetComponent<SkinnedMeshRenderer>();
+        //girlMesh.sharedMesh.SetUVs(3, girlMesh.sharedMesh.vertices);
+        //girlMesh.sharedMesh.SetUVs(3, girlMesh.sharedMesh.vertices);
     }
 
     /// <summary>
@@ -301,6 +315,17 @@ public class Girl
         tailBase.localScale = earsTail;
         EarBaseL.localScale = earsTail;
         EarBaseR.localScale = earsTail;
+
+
+        float furRamp = Mathf.Clamp01(Mathf.Pow(TF, 3));    // The fur starts fast and ends slow; fix that
+        float furTF = Mathf.Lerp(.3f, -3.5f, Mathf.Clamp01(furRamp));    // My fur TF shader has a weird range, idk
+
+        //Debug.Log("girlMesh.materials 0 " + girlMesh.materials[0].name);
+        //Debug.Log("girlMesh.materials 1 " + girlMesh.materials[1].name);
+        //Debug.Log("girlMesh.materials 2 " + girlMesh.materials[2].name);
+        if (girlMesh.materials[0].name.ToLower() != "girl skin")
+            Debug.LogWarning("Warning! Skin material not found, for fur TF!");
+        girlMesh.materials[0].SetFloat("_FurTF", furTF);
     }
 
     /// <summary>
