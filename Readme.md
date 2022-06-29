@@ -7,7 +7,9 @@ PLAYING THE GAME:
 USING THE GAME ASSETS:
 
 -Model:
+
 -girl3e_.blend is the most recent iteration. (TODO, delete the old files)
+
 -Blender 3.2 is the version used to work on it.
 
 -(The topology is crude but it'll work for jams)
